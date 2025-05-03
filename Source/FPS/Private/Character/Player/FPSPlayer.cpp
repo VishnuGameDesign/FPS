@@ -1,5 +1,8 @@
 // Copyright by Vishnu Suresh
 
 
-#include "FPSPlayer.h"
+#include "Character/Player/FPSPlayer.h"
 
+AFPSPlayer::AFPSPlayer()
+{
+}

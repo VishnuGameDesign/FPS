@@ -1,6 +1,6 @@
 // Copyright by Vishnu Suresh
 
-#include "FPSCharacterBase.h"
+#include "Character/Base/FPSCharacterBase.h"
 
 AFPSCharacterBase::AFPSCharacterBase()
 {
