@@ -20,7 +20,9 @@ public:
 	
 protected:
 	virtual void BeginPlay() override;
-	void SetupInputComponent() override;
+	virtual void SetupInputComponent() override;
+	virtual void OnPossess(APawn* InPawn) override;
+	
 	void Move(const FInputActionValue& InputActionValue);
 	void Look(const FInputActionValue& InputActionValue);
 	void Jump(const FInputActionValue& InputActionValue);
@@ -53,4 +55,7 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = "Input Actions")
 	TObjectPtr<UInputAction> ReloadAction;
+
+	UPROPERTY(VisibleDefaultsOnly, Category = "Pawn")
+	TObjectPtr<APawn> ControlledPawn;
 };

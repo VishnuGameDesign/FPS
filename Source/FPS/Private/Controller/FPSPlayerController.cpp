@@ -39,25 +39,38 @@ void AFPSPlayerController::SetupInputComponent()
 	EnhancedInputComponent->BindAction(ReloadAction, ETriggerEvent::Triggered, this, &AFPSPlayerController::Reload);
 }
 
+void AFPSPlayerController::OnPossess(APawn* InPawn)
+{
+	Super::OnPossess(InPawn);
+
+	ControlledPawn = InPawn;
+}
+
 void AFPSPlayerController::Move(const FInputActionValue& InputActionValue)
 {
 	const FVector2D InputAxisVector = InputActionValue.Get<FVector2D>();
 	const FRotator Rotation = GetControlRotation();
-	const FRotator YawRotation(0.f, Rotation.Yaw, 0.f);
-
+	const FRotator YawRotation(0.0f, Rotation.Yaw, 0.0f);
 	const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
 	const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 
-	if (APawn* ControlledPawn = GetPawn<APawn>())
-	{
-		ControlledPawn->AddMovementInput(ForwardDirection, InputAxisVector.Y);
-		ControlledPawn->AddMovementInput(RightDirection, InputAxisVector.X);
-	}
+	if(!ControlledPawn) return;
+	
+	ControlledPawn->AddMovementInput(ForwardDirection, InputAxisVector.Y);
+	ControlledPawn->AddMovementInput(RightDirection, InputAxisVector.X);
 }
 
 void AFPSPlayerController::Look(const FInputActionValue& InputActionValue)
 {
 	const FVector2D InputAxisVector = InputActionValue.Get<FVector2D>();
+
+	FRotator Rotation = GetControlRotation();
+
+	Rotation.Yaw += InputAxisVector.X;
+	Rotation.Pitch += InputAxisVector.Y;
+
+	Rotation.Pitch = FMath::ClampAngle(Rotation.Pitch, -50.0f, 50.0f) + InputAxisVector.Y;
+	SetControlRotation(Rotation);
 }
 
 void AFPSPlayerController::Jump(const FInputActionValue& InputActionValue)
