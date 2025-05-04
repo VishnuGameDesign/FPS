@@ -4,6 +4,7 @@
 #include "Controller/FPSPlayerController.h"
 #include "EnhancedInputSubsystems.h"
 #include "EnhancedInputComponent.h"
+#include "Character/Player/FPSPlayer.h"
 
 AFPSPlayerController::AFPSPlayerController()
 {
@@ -31,10 +32,19 @@ void AFPSPlayerController::SetupInputComponent()
 
 	UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(InputComponent);
 
+	// move
 	EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AFPSPlayerController::Move);
 	EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AFPSPlayerController::Look);
-	EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &AFPSPlayerController::Jump);
-	EnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Triggered, this, &AFPSPlayerController::Crouch);
+	// jump
+	EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &AFPSPlayerController::HandleJump);
+	EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &AFPSPlayerController::HandleStopJumping);
+	// crouch
+	EnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Triggered, this, &AFPSPlayerController::HandleCrouch);
+	EnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Completed, this, &AFPSPlayerController::HandleUnCrouch);
+	// sprint
+	EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Triggered, this, &AFPSPlayerController::HandleSprinting);
+	EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Completed, this, &AFPSPlayerController::HandleStopSprinting);
+	// gun 
 	EnhancedInputComponent->BindAction(ShootAction, ETriggerEvent::Triggered, this, &AFPSPlayerController::Shoot);
 	EnhancedInputComponent->BindAction(ReloadAction, ETriggerEvent::Triggered, this, &AFPSPlayerController::Reload);
 }
@@ -43,7 +53,7 @@ void AFPSPlayerController::OnPossess(APawn* InPawn)
 {
 	Super::OnPossess(InPawn);
 
-	ControlledPawn = InPawn;
+	FPSCharacter = Cast<AFPSPlayer>(InPawn);
 }
 
 void AFPSPlayerController::Move(const FInputActionValue& InputActionValue)
@@ -54,10 +64,14 @@ void AFPSPlayerController::Move(const FInputActionValue& InputActionValue)
 	const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
 	const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 
-	if(!ControlledPawn) return;
+	APawn* ControlledPawn = Cast<APawn>(GetPawn());
 	
-	ControlledPawn->AddMovementInput(ForwardDirection, InputAxisVector.Y);
-	ControlledPawn->AddMovementInput(RightDirection, InputAxisVector.X);
+	if(ControlledPawn)
+	{
+		ControlledPawn->AddMovementInput(ForwardDirection, InputAxisVector.Y);
+		ControlledPawn->AddMovementInput(RightDirection, InputAxisVector.X);
+	}
+	
 }
 
 void AFPSPlayerController::Look(const FInputActionValue& InputActionValue)
@@ -73,13 +87,58 @@ void AFPSPlayerController::Look(const FInputActionValue& InputActionValue)
 	SetControlRotation(Rotation);
 }
 
-void AFPSPlayerController::Jump(const FInputActionValue& InputActionValue)
+void AFPSPlayerController::HandleJump(const FInputActionValue& InputActionValue)
 {
+	if (FPSCharacter)
+	{
+		FPSCharacter->Jump();
+		FPSCharacter->bIsJumping = true;
+	}
 }
 
-void AFPSPlayerController::Crouch(const FInputActionValue& InputActionValue)
+void AFPSPlayerController::HandleStopJumping(const FInputActionValue& InputActionValue)
 {
+	if (FPSCharacter)
+	{
+		FPSCharacter->StopJumping();
+		FPSCharacter->bIsJumping = false;
+	}
 }
+
+void AFPSPlayerController::HandleCrouch(const FInputActionValue& InputActionValue)
+{
+	if (FPSCharacter)
+	{
+		FPSCharacter->Crouch();
+	}
+}
+
+
+void AFPSPlayerController::HandleUnCrouch(const FInputActionValue& InputActionValue)
+{
+	if (FPSCharacter)
+	{
+		FPSCharacter->UnCrouch();
+	}
+}
+
+void AFPSPlayerController::HandleSprinting(const FInputActionValue& InputActionValue)
+{
+	if (FPSCharacter)
+	{
+		FPSCharacter->StartSprinting();
+	}
+}
+
+
+void AFPSPlayerController::HandleStopSprinting(const FInputActionValue& InputActionValue)
+{
+	if (FPSCharacter)
+	{
+		FPSCharacter->StopSprinting();
+	}
+}
+
 
 void AFPSPlayerController::Shoot(const FInputActionValue& InputActionValue)
 {
