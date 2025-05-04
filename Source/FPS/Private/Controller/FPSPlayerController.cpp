@@ -109,7 +109,7 @@ void AFPSPlayerController::HandleCrouch(const FInputActionValue& InputActionValu
 {
 	if (FPSCharacter)
 	{
-		FPSCharacter->Crouch();
+		FPSCharacter->StartCrouch();
 	}
 }
 
@@ -118,7 +118,7 @@ void AFPSPlayerController::HandleUnCrouch(const FInputActionValue& InputActionVa
 {
 	if (FPSCharacter)
 	{
-		FPSCharacter->UnCrouch();
+		FPSCharacter->StopCrouch();
 	}
 }
 

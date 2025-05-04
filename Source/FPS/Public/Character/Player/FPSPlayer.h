@@ -14,11 +14,17 @@ class FPS_API AFPSPlayer : public AFPSCharacterBase
 	GENERATED_BODY()
 public:
 	AFPSPlayer();
+	virtual void Tick(float DeltaTime) override;
 	void StartSprinting();
 	void StopSprinting();
+	void StartCrouch();
+	void StopCrouch();
 
 	UPROPERTY(BlueprintReadOnly, Category = "Player Movement Settings")
 	bool bIsJumping = false;
+
+	UPROPERTY(EditAnywhere, Category = "Player Movement Settings")
+	bool bInitSmoothCrouch = false;
 
 protected:
 	UPROPERTY(EditAnywhere, Category = "Camera")
@@ -30,6 +36,19 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Player Movement Settings")
 	float WalkSpeed = 500.f;
 
-	UPROPERTY(Blueprintable, EditAnywhere, Category = "Player Movement Settings")
+	UPROPERTY(EditAnywhere, Category = "Player Movement Settings")
 	float SprintSpeed = 1000.f;
+
+	UPROPERTY(EditAnywhere, Category = "Player Movement Settings")
+	float StandingCapsuleHeight = 88.f;
+	
+	UPROPERTY(EditAnywhere, Category = "Player Movement Settings")
+	float CrouchedCapsuleHalfHeight = 44.f;
+
+	UPROPERTY(EditAnywhere, Category = "Player Movement Settings")
+	float CrouchInterpSpeed = 1.f;
+
+private:
+	void CrouchToTargetHeight(float TargetHeight, float Time);
+
 };

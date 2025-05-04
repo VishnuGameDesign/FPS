@@ -36,7 +36,6 @@ protected:
 	void Reload(const FInputActionValue& InputActionValue);
 
 private:
-
 	UPROPERTY(EditAnywhere, Category = "Input Maps")
 	TObjectPtr<UInputMappingContext> PlayerInputMappingContext;
 
