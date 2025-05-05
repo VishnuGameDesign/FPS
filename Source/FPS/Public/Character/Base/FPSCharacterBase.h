@@ -6,7 +6,7 @@
 #include "GameFramework/Character.h"
 #include "FPSCharacterBase.generated.h"
 
-UCLASS()
+UCLASS(Abstract)
 class FPS_API AFPSCharacterBase : public ACharacter
 {
 	GENERATED_BODY()
