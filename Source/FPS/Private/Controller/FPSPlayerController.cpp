@@ -93,10 +93,6 @@ void AFPSPlayerController::HandleJump(const FInputActionValue& InputActionValue)
 	{
 		FPSCharacter->bIsJumping = true;
 		FPSCharacter->Jump();
-		if (FPSCharacter->bIsRunningOnWall)
-		{
-			FPSCharacter->WallJump();
-		}
 	}
 }
 

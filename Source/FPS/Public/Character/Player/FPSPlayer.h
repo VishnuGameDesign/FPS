@@ -7,6 +7,8 @@
 #include "Interaction/IRunnableWall.h"
 #include "FPSPlayer.generated.h"
 
+#define ECC_WallRun ECC_GameTraceChannel2
+
 class UCameraComponent;
 
 UCLASS()
@@ -16,13 +18,10 @@ class FPS_API AFPSPlayer : public AFPSCharacterBase
 public:
 	AFPSPlayer();
 	virtual void Tick(float DeltaTime) override;
-	virtual void NotifyHit(class UPrimitiveComponent* MyComp, AActor* Other, class UPrimitiveComponent* OtherComp, bool bSelfMoved, FVector HitLocation, FVector HitNormal, FVector NormalImpulse, const FHitResult& Hit) override;
 	void StartSprinting();
 	void StopSprinting();
 	void StartCrouch();
 	void StopCrouch();
-	void WallJump();
-	FVector GetWallJumpVelocity();
 
 	UPROPERTY(BlueprintReadOnly, Category = "Player Movement Settings")
 	bool bIsJumping = false;
@@ -44,16 +43,10 @@ protected:
 	float WalkSpeed = 500.f;
 
 	UPROPERTY(EditAnywhere, Category = "Movement")
-	float SprintSpeed = 1000.f;
-
+	float SprintSpeed = 800.f;
+	
 	UPROPERTY(EditAnywhere, Category = "Wall Run")
-	float MaxWallRunTime = 3.f;
-
-	UPROPERTY(EditAnywhere, Category = "Wall Run")
-	float WallRunGravityScale = 0.5f;
-
-	UPROPERTY(EditAnywhere, Category = "Wall Run")
-	float WallJumpForce = 100.0f;
+	float LineTraceDistance = 10.f;
 	
 	UPROPERTY(EditAnywhere, Category = "Crouch")
 	float StandingCapsuleHeight = 88.f;
@@ -64,11 +57,12 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Crouch")
 	float CrouchInterpSpeed = 1.f;
 
+	
+
 private:
 	void CrouchToTargetHeight(float TargetHeight, float Time);
-
+	AActor* CheckWall(const FVector& Direction, FHitResult& HitResult);
+	void CheckFacingWallDirection(const FVector& WallNormal);
 	TScriptInterface<IIRunnableWall> RunnableWall;
-
 	bool CanWallRun;
-	FVector WallNormal;
 };

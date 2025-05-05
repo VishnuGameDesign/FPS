@@ -1,9 +1,12 @@
 // Copyright by Vishnu Suresh
 
 #include "Character/Player/FPSPlayer.h"
+
+#include "VectorTypes.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Math/UnitConversion.h"
 
 AFPSPlayer::AFPSPlayer()
 {
@@ -24,28 +27,61 @@ AFPSPlayer::AFPSPlayer()
 void AFPSPlayer::Tick(const float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
+	
+	// smooth crouching 
 	if (bInitSmoothCrouch)
-	{
 		CrouchToTargetHeight(CrouchedCapsuleHalfHeight, DeltaTime);
+	else
+		CrouchToTargetHeight(StandingCapsuleHeight, DeltaTime);
+
+	// line tracing for wall run
+	FHitResult RightHit, LeftHit;
+
+	AActor* RightWall = CheckWall(GetActorRightVector(), RightHit);
+	AActor* LeftWall = CheckWall(-GetActorRightVector(), LeftHit);
+	
+	if (RightWall)
+	{
+		RunnableWall = RightWall;
+		if (RunnableWall)
+			CheckFacingWallDirection(RightHit.Normal);
+	}
+	else if (LeftWall)
+		RunnableWall = LeftWall;
+		if (RunnableWall)
+			CheckFacingWallDirection(LeftHit.Normal);
+}
+
+AActor* AFPSPlayer::CheckWall(const FVector& Direction, FHitResult& HitResult)
+{
+	const FVector TraceStart = GetActorLocation();
+	const FVector TraceEnd = TraceStart + Direction * LineTraceDistance;
+
+	FCollisionQueryParams Params;
+	Params.AddIgnoredActor(this);
+
+	if (GetWorld()->LineTraceSingleByChannel(HitResult, TraceStart, TraceEnd, ECC_WallRun, Params))
+	{
+		DrawDebugLine(GetWorld(), TraceStart, TraceEnd,  HitResult.bBlockingHit ? FColor::Blue : FColor::Red, true, 1.f, 0, 1.f);
+		if (HitResult.bBlockingHit && IsValid(HitResult.GetActor()))
+		{
+			return HitResult.GetActor();
+		}
+	}
+	return nullptr;
+}
+
+
+void AFPSPlayer::CheckFacingWallDirection(const FVector& WallNormal)
+{
+	const float FacingDir = FVector::DotProduct(GetActorRightVector(), WallNormal);
+	if (FMath::Abs(FacingDir) > 0.8f)
+	{
+		RunnableWall->RunOnWall(this, WallNormal);
 	}
 	else
 	{
-		CrouchToTargetHeight(StandingCapsuleHeight, DeltaTime);
-	}
-}
-
-void AFPSPlayer::NotifyHit(UPrimitiveComponent* MyComp, AActor* Other, UPrimitiveComponent* OtherComp,
-	bool bSelfMoved, FVector HitLocation, FVector HitNormal, FVector NormalImpulse, const FHitResult& Hit)
-{
-	Super::NotifyHit(MyComp, Other, OtherComp, bSelfMoved, HitLocation, HitNormal, NormalImpulse, Hit);
-
-	WallNormal = HitNormal;
-	if (Other && Other->Implements<UIRunnableWall>())
-	{
-		RunnableWall = Other;
-		RunnableWall->RunOnWall(this, HitNormal, WallRunGravityScale);
-		bIsRunningOnWall = true;
+		RunnableWall->StopRunningOnWall(this);
 	}
 }
 
@@ -69,20 +105,6 @@ void AFPSPlayer::StopCrouch()
 {
 	bInitSmoothCrouch = false;
 	GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
-}
-
-void AFPSPlayer::WallJump()
-{
-	if (!RunnableWall || !bIsRunningOnWall) return;
-
-	RunnableWall->StopRunningOnWall(this);
-	LaunchCharacter(GetWallJumpVelocity(), true, true);
-}
-
-FVector AFPSPlayer::GetWallJumpVelocity()
-{
-	FVector WallJumpVelocity = WallNormal * WallJumpForce;
-	return WallJumpVelocity;
 }
 
 void AFPSPlayer::CrouchToTargetHeight(float TargetHeight, float Time)
