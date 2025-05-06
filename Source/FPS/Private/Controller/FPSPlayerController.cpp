@@ -36,7 +36,7 @@ void AFPSPlayerController::SetupInputComponent()
 	EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AFPSPlayerController::Move);
 	EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AFPSPlayerController::Look);
 	// jump
-	EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &AFPSPlayerController::HandleJump);
+	EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &AFPSPlayerController::HandleJump);
 	EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &AFPSPlayerController::HandleStopJumping);
 	// crouch
 	EnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Triggered, this, &AFPSPlayerController::HandleCrouch);
@@ -91,8 +91,15 @@ void AFPSPlayerController::HandleJump(const FInputActionValue& InputActionValue)
 {
 	if (FPSCharacter)
 	{
-		FPSCharacter->bIsJumping = true;
-		FPSCharacter->Jump();
+		if (FPSCharacter->bIsRunningOnWall)
+		{
+			FPSCharacter->JumpOffWall();
+		}
+		else
+		{
+			FPSCharacter->bIsJumping = true;
+			FPSCharacter->Jump();
+		}
 	}
 }
 
@@ -100,8 +107,8 @@ void AFPSPlayerController::HandleStopJumping(const FInputActionValue& InputActio
 {
 	if (FPSCharacter)
 	{
-		FPSCharacter->StopJumping();
 		FPSCharacter->bIsJumping = false;
+		FPSCharacter->StopJumping();
 	}
 }
 

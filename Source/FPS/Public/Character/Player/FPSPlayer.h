@@ -22,6 +22,8 @@ public:
 	void StopSprinting();
 	void StartCrouch();
 	void StopCrouch();
+	void StopRunningOnWall();
+	void JumpOffWall();
 
 	UPROPERTY(BlueprintReadOnly, Category = "Player Movement Settings")
 	bool bIsJumping = false;
@@ -31,6 +33,9 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "Player Movement Settings")
 	bool bInitSmoothCrouch = false;
+
+	UPROPERTY(VisibleAnywhere, Category= "Wall Run")
+	FVector CurrentWallImpactNormal;
 
 protected:
 	UPROPERTY(EditAnywhere, Category = "Camera")
@@ -44,7 +49,22 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "Movement")
 	float SprintSpeed = 800.f;
+
+	UPROPERTY(EditAnywhere, Category = "Wall Run")
+	float MaxWallRunTime = 3.f;
+
+	UPROPERTY(EditAnywhere, Category = "Wall Run")
+	float DefaultGravityScale = 2.0f;
 	
+	UPROPERTY(EditAnywhere, Category = "Wall Run")
+	float WallRunGravityScale = 0.5f;
+
+	UPROPERTY(EditAnywhere, Category = "Movement")
+	float WallJumpForceX = 800.f;
+	
+	UPROPERTY(EditAnywhere, Category = "Movement")
+	float WallJumpForceZ = 800.f;
+
 	UPROPERTY(EditAnywhere, Category = "Wall Run")
 	float LineTraceDistance = 10.f;
 	
@@ -57,7 +77,6 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Crouch")
 	float CrouchInterpSpeed = 1.f;
 
-	
 
 private:
 	void CrouchToTargetHeight(float TargetHeight, float Time);

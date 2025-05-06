@@ -2,11 +2,9 @@
 
 #include "Character/Player/FPSPlayer.h"
 
-#include "VectorTypes.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
-#include "Math/UnitConversion.h"
 
 AFPSPlayer::AFPSPlayer()
 {
@@ -47,9 +45,15 @@ void AFPSPlayer::Tick(const float DeltaTime)
 			CheckFacingWallDirection(RightHit.Normal);
 	}
 	else if (LeftWall)
+	{
 		RunnableWall = LeftWall;
 		if (RunnableWall)
 			CheckFacingWallDirection(LeftHit.Normal);
+	}
+	else if (!RightHit.bBlockingHit || !LeftHit.bBlockingHit)
+	{
+		StopRunningOnWall();
+	}
 }
 
 AActor* AFPSPlayer::CheckWall(const FVector& Direction, FHitResult& HitResult)
@@ -65,6 +69,7 @@ AActor* AFPSPlayer::CheckWall(const FVector& Direction, FHitResult& HitResult)
 		DrawDebugLine(GetWorld(), TraceStart, TraceEnd,  HitResult.bBlockingHit ? FColor::Blue : FColor::Red, true, 1.f, 0, 1.f);
 		if (HitResult.bBlockingHit && IsValid(HitResult.GetActor()))
 		{
+			CurrentWallImpactNormal = HitResult.ImpactNormal;
 			return HitResult.GetActor();
 		}
 	}
@@ -77,11 +82,7 @@ void AFPSPlayer::CheckFacingWallDirection(const FVector& WallNormal)
 	const float FacingDir = FVector::DotProduct(GetActorRightVector(), WallNormal);
 	if (FMath::Abs(FacingDir) > 0.8f)
 	{
-		RunnableWall->RunOnWall(this, WallNormal);
-	}
-	else
-	{
-		RunnableWall->StopRunningOnWall(this);
+		RunnableWall->RunOnWall(this, WallNormal, MaxWallRunTime, DefaultGravityScale, WallRunGravityScale);
 	}
 }
 
@@ -105,6 +106,21 @@ void AFPSPlayer::StopCrouch()
 {
 	bInitSmoothCrouch = false;
 	GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
+}
+
+void AFPSPlayer::JumpOffWall()
+{
+	bIsJumping = true;
+	FVector LaunchDir = CurrentWallImpactNormal  * 1000.0f;
+	LaunchCharacter(LaunchDir, false, false);
+	StopRunningOnWall();
+}
+
+void AFPSPlayer::StopRunningOnWall()
+{
+	bIsRunningOnWall = false;
+	GetCharacterMovement()->SetPlaneConstraintEnabled(false);
+	GetCharacterMovement()->GravityScale = DefaultGravityScale;
 }
 
 void AFPSPlayer::CrouchToTargetHeight(float TargetHeight, float Time)

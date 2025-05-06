@@ -19,6 +19,5 @@ class FPS_API IIRunnableWall
 	GENERATED_BODY()
 
 public:
-	virtual void RunOnWall(AFPSPlayer* FPSPlayer, FVector WallNormal) = 0;
-	virtual void StopRunningOnWall(AFPSPlayer* FPSPlayer) = 0;
+	virtual void RunOnWall(AFPSPlayer* FPSPlayer, FVector WallNormal, float MaxWallRunTime, float DefaultGravityScale, float TargetGravityScale) = 0;
 };
