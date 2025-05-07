@@ -16,7 +16,6 @@ class FPS_API ARunnableWall : public AActor, public IIRunnableWall
 	
 public:	
 	ARunnableWall();
-	virtual void RunOnWall(AFPSPlayer* FPSPlayer, FVector WallNormal, float MaxWallRunTime, float DefaultGravityScale, float TargetGravityScale) override;
 
 protected:
 

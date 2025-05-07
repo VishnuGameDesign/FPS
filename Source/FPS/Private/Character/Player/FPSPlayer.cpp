@@ -1,9 +1,9 @@
 // Copyright by Vishnu Suresh
 
 #include "Character/Player/FPSPlayer.h"
-
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "Controller/FPSPlayerController.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
 AFPSPlayer::AFPSPlayer()
@@ -22,10 +22,30 @@ AFPSPlayer::AFPSPlayer()
 	GetCharacterMovement()->GetNavAgentPropertiesRef().bCanCrouch = true;
 }
 
+void AFPSPlayer::BeginPlay()
+{
+	Super::BeginPlay();
+
+	if (APlayerController* PlayerController = Cast<APlayerController>(GetController()))
+	{
+		if (AFPSPlayerController*  FPSPlayerController = Cast<AFPSPlayerController>(PlayerController))
+		{
+			FPSPlayerController->OnCharacterMoving().AddUObject(this, &AFPSPlayer::OnPlayerMoving);
+		}
+	}
+}
+
+void AFPSPlayer::OnPlayerMoving()
+{
+	if (bCanRunWall)
+	{
+		RunOnWall();
+	}
+}
+
 void AFPSPlayer::Tick(const float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	
 	// smooth crouching 
 	if (bInitSmoothCrouch)
 		CrouchToTargetHeight(CrouchedCapsuleHalfHeight, DeltaTime);
@@ -34,29 +54,21 @@ void AFPSPlayer::Tick(const float DeltaTime)
 
 	// line tracing for wall run
 	FHitResult RightHit, LeftHit;
-
-	AActor* RightWall = CheckWall(GetActorRightVector(), RightHit);
-	AActor* LeftWall = CheckWall(-GetActorRightVector(), LeftHit);
+	   
+	TScriptInterface<IIRunnableWall> RightWall = CheckWall(GetActorRightVector(), RightHit);
+	TScriptInterface<IIRunnableWall> LeftWall = CheckWall(-GetActorRightVector(), LeftHit);
 	
 	if (RightWall)
 	{
-		RunnableWall = RightWall;
-		if (RunnableWall)
-			CheckFacingWallDirection(RightHit.Normal);
+		CheckFacingDir(RightHit.Normal);
 	}
 	else if (LeftWall)
 	{
-		RunnableWall = LeftWall;
-		if (RunnableWall)
-			CheckFacingWallDirection(LeftHit.Normal);
-	}
-	else if (!RightHit.bBlockingHit || !LeftHit.bBlockingHit)
-	{
-		StopRunningOnWall();
+		CheckFacingDir(LeftHit.Normal);
 	}
 }
 
-AActor* AFPSPlayer::CheckWall(const FVector& Direction, FHitResult& HitResult)
+TScriptInterface<IIRunnableWall> AFPSPlayer::CheckWall(const FVector& Direction, FHitResult& HitResult)
 {
 	const FVector TraceStart = GetActorLocation();
 	const FVector TraceEnd = TraceStart + Direction * LineTraceDistance;
@@ -66,24 +78,70 @@ AActor* AFPSPlayer::CheckWall(const FVector& Direction, FHitResult& HitResult)
 
 	if (GetWorld()->LineTraceSingleByChannel(HitResult, TraceStart, TraceEnd, ECC_WallRun, Params))
 	{
-		DrawDebugLine(GetWorld(), TraceStart, TraceEnd,  HitResult.bBlockingHit ? FColor::Blue : FColor::Red, true, 1.f, 0, 1.f);
+		DrawDebugLine(GetWorld(), TraceStart, TraceEnd,  HitResult.bBlockingHit ? FColor::Blue : FColor::Red, false, 10.f, 0, 1.f);
 		if (HitResult.bBlockingHit && IsValid(HitResult.GetActor()))
 		{
 			CurrentWallImpactNormal = HitResult.ImpactNormal;
-			return HitResult.GetActor();
+			RunnableWall = HitResult.GetActor();
+			return RunnableWall;
 		}
 	}
 	return nullptr;
 }
 
 
-void AFPSPlayer::CheckFacingWallDirection(const FVector& WallNormal)
+void AFPSPlayer::CheckFacingDir(const FVector& WallNormal)
 {
-	const float FacingDir = FVector::DotProduct(GetActorRightVector(), WallNormal);
-	if (FMath::Abs(FacingDir) > 0.8f)
+	FacingDirection = FVector::DotProduct(GetActorRightVector(), WallNormal);
+	if (FMath::Abs(FacingDirection) > 0.5f)
 	{
-		RunnableWall->RunOnWall(this, WallNormal, MaxWallRunTime, DefaultGravityScale, WallRunGravityScale);
+		if (!bIsRunningOnWall)
+		{
+			bCanRunWall = true;
+		}
 	}
+	else
+	{
+		bCanRunWall = false;
+	}
+}
+
+void AFPSPlayer::RunOnWall()
+{
+	bCanRunWall = false;
+	bIsRunningOnWall = true;
+	UE_LOG(LogTemp, Display, TEXT("RunOnWall"));
+	GetCharacterMovement()->GravityScale = WallRunGravityScale;
+	GetWorldTimerManager().SetTimer(WallRunTimer, this, &AFPSPlayer::StopRunningOnWall, MaxWallRunTime, false);
+
+	// sticking the player to the wall
+	FVector WallNormal = CurrentWallImpactNormal.GetSafeNormal();
+	FVector Distance = WallNormal - GetActorLocation();
+	FVector LaunchVelocity = Distance.Normalize() * WallNormal;
+	LaunchCharacter(LaunchVelocity, true, true);
+	
+	
+	// sending the character move in the forward direction whilst wall running
+	float Direction = WallRunSpeed * FacingDirection;
+	FVector ForwardLaunchVelocity = FVector::CrossProduct(WallNormal, FVector::UpVector) * Direction;
+	LaunchCharacter(ForwardLaunchVelocity, true, false);
+}
+
+void AFPSPlayer::StopRunningOnWall()
+{
+	GetWorldTimerManager().ClearTimer(WallRunTimer);
+	
+	bIsRunningOnWall = false;
+	UE_LOG(LogTemp, Display, TEXT("StopRunningOnWall"));
+	GetCharacterMovement()->GravityScale = DefaultGravityScale;
+}
+
+
+void AFPSPlayer::JumpOffWall()
+{
+	FVector LaunchDir = CurrentWallImpactNormal + FVector::UpVector * 0.2f;
+	LaunchCharacter(LaunchDir * WallJumpForce, false, false);
+	StopRunningOnWall();
 }
 
 void AFPSPlayer::StartSprinting()
@@ -108,20 +166,6 @@ void AFPSPlayer::StopCrouch()
 	GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
 }
 
-void AFPSPlayer::JumpOffWall()
-{
-	bIsJumping = true;
-	FVector LaunchDir = CurrentWallImpactNormal  * 1000.0f;
-	LaunchCharacter(LaunchDir, false, false);
-	StopRunningOnWall();
-}
-
-void AFPSPlayer::StopRunningOnWall()
-{
-	bIsRunningOnWall = false;
-	GetCharacterMovement()->SetPlaneConstraintEnabled(false);
-	GetCharacterMovement()->GravityScale = DefaultGravityScale;
-}
 
 void AFPSPlayer::CrouchToTargetHeight(float TargetHeight, float Time)
 {
@@ -133,6 +177,7 @@ void AFPSPlayer::CrouchToTargetHeight(float TargetHeight, float Time)
 		GetCapsuleComponent()->SetCapsuleHalfHeight(NewHeight, true);
 	}
 }
+
 
 
 

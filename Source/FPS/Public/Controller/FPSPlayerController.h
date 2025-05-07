@@ -11,6 +11,8 @@ struct FInputActionValue;
 class UInputMappingContext;
 class UInputAction;
 
+DECLARE_EVENT(FAFPSPlayerController, FOnCharacterMovingSignature)
+
 UCLASS()
 class FPS_API AFPSPlayerController : public APlayerController
 {
@@ -18,6 +20,10 @@ class FPS_API AFPSPlayerController : public APlayerController
 
 public:
 	AFPSPlayerController();
+	FOnCharacterMovingSignature& OnCharacterMoving() {return  OnCharacterMovingEvent; }
+
+	UPROPERTY(BlueprintReadOnly)
+	bool bIsJumping = false;
 	
 protected:
 	virtual void BeginPlay() override;
@@ -65,4 +71,12 @@ private:
 
 	UPROPERTY(VisibleDefaultsOnly, Category = "FPS Character")
 	TObjectPtr<AFPSPlayer> FPSCharacter;
+
+	UPROPERTY(EditAnywhere, Category = "FPS Character")
+	float LookRotationMinY = -50.0f;
+	
+	UPROPERTY(EditAnywhere, Category = "FPS Character")
+	float LookRotationMinZ = 50.0f;
+
+	FOnCharacterMovingSignature OnCharacterMovingEvent;
 };

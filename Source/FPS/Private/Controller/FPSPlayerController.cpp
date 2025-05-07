@@ -6,6 +6,7 @@
 #include "EnhancedInputComponent.h"
 #include "Character/Player/FPSPlayer.h"
 
+
 AFPSPlayerController::AFPSPlayerController()
 {
 	bReplicates = true;
@@ -70,8 +71,12 @@ void AFPSPlayerController::Move(const FInputActionValue& InputActionValue)
 	{
 		ControlledPawn->AddMovementInput(ForwardDirection, InputAxisVector.Y);
 		ControlledPawn->AddMovementInput(RightDirection, InputAxisVector.X);
+
+		if (ControlledPawn->GetVelocity().Size() > 0.0f)
+		{
+			OnCharacterMoving().Broadcast();
+		}
 	}
-	
 }
 
 void AFPSPlayerController::Look(const FInputActionValue& InputActionValue)
@@ -83,23 +88,17 @@ void AFPSPlayerController::Look(const FInputActionValue& InputActionValue)
 	Rotation.Yaw += InputAxisVector.X;
 	Rotation.Pitch += InputAxisVector.Y;
 
-	Rotation.Pitch = FMath::ClampAngle(Rotation.Pitch, -50.0f, 50.0f) + InputAxisVector.Y;
+	Rotation.Pitch = FMath::ClampAngle(Rotation.Pitch, LookRotationMinY, LookRotationMinZ) + InputAxisVector.Y;
 	SetControlRotation(Rotation);
 }
+
 
 void AFPSPlayerController::HandleJump(const FInputActionValue& InputActionValue)
 {
 	if (FPSCharacter)
 	{
-		if (FPSCharacter->bIsRunningOnWall)
-		{
-			FPSCharacter->JumpOffWall();
-		}
-		else
-		{
-			FPSCharacter->bIsJumping = true;
-			FPSCharacter->Jump();
-		}
+		bIsJumping = true;
+		FPSCharacter->Jump();
 	}
 }
 
@@ -107,7 +106,7 @@ void AFPSPlayerController::HandleStopJumping(const FInputActionValue& InputActio
 {
 	if (FPSCharacter)
 	{
-		FPSCharacter->bIsJumping = false;
+		bIsJumping = false;
 		FPSCharacter->StopJumping();
 	}
 }
@@ -154,6 +153,7 @@ void AFPSPlayerController::Shoot(const FInputActionValue& InputActionValue)
 void AFPSPlayerController::Reload(const FInputActionValue& InputActionValue)
 {
 }
+
 
 
 

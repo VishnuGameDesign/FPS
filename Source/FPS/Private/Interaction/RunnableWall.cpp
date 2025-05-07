@@ -21,16 +21,6 @@ ARunnableWall::ARunnableWall()
 	BoxComponent->SetCollisionResponseToChannel(ECC_WallRun, ECR_Block);
 }
 
-void ARunnableWall::RunOnWall(AFPSPlayer* FPSPlayer, FVector WallNormal, float MaxWallRunTime, float DefaultGravityScale, float TargetGravityScale) 
-{
-	if (!FPSPlayer) return;
-
-	FPSPlayer->bIsRunningOnWall = true;
-	FPSPlayer->GetCharacterMovement()->SetPlaneConstraintEnabled(true);
-	FPSPlayer->GetCharacterMovement()->SetPlaneConstraintNormal(WallNormal);
-	FPSPlayer->GetCharacterMovement()->GravityScale = TargetGravityScale;
-}
-
 
 
 
