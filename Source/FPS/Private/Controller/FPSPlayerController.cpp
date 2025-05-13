@@ -5,6 +5,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "EnhancedInputComponent.h"
 #include "Character/Player/FPSPlayer.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 AFPSPlayerController::AFPSPlayerController()
 {
@@ -52,7 +53,6 @@ void AFPSPlayerController::SetupInputComponent()
 void AFPSPlayerController::OnPossess(APawn* InPawn)
 {
 	Super::OnPossess(InPawn);
-
 	FPSCharacter = Cast<AFPSPlayer>(InPawn);
 }
 
@@ -71,7 +71,6 @@ void AFPSPlayerController::Move(const FInputActionValue& InputActionValue)
 		ControlledPawn->AddMovementInput(ForwardDirection, InputAxisVector.Y);
 		ControlledPawn->AddMovementInput(RightDirection, InputAxisVector.X);
 	}
-	
 }
 
 void AFPSPlayerController::Look(const FInputActionValue& InputActionValue)
@@ -91,8 +90,17 @@ void AFPSPlayerController::HandleJump(const FInputActionValue& InputActionValue)
 {
 	if (FPSCharacter)
 	{
-		FPSCharacter->bIsJumping = true;
-		FPSCharacter->Jump();
+		if (!FPSCharacter->bIsRunningOnWall && FPSCharacter->bCanJump)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Normal Jump"));
+			FPSCharacter->bIsJumping = true;
+			FPSCharacter->Jump();
+		}
+		else
+		{
+			FPSCharacter->bIsJumping = true;
+			// FPSCharacter->JumpOffWall();
+		}
 	}
 }
 

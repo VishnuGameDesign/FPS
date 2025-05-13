@@ -22,9 +22,16 @@ public:
 	void StopSprinting();
 	void StartCrouch();
 	void StopCrouch();
+	void JumpOffWall();
 
 	UPROPERTY(BlueprintReadOnly, Category = "Player Movement Settings")
 	bool bIsJumping = false;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Player Movement Settings")
+	bool bCanJump = true;
+	
+	UPROPERTY(BlueprintReadOnly, Category = "Player Movement Settings")
+	bool bIsJumpingOffWall = false;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Wall Run")
 	bool bIsRunningOnWall = false;
@@ -44,6 +51,15 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "Movement")
 	float SprintSpeed = 800.f;
+
+	UPROPERTY(EditAnywhere, Category = "Wall Jump")
+	float JumpForce = 2.f;
+	
+	UPROPERTY(EditAnywhere, Category = "Wall Run")
+	float DefaultGravityScale = 2.0f;
+
+	UPROPERTY(EditAnywhere, Category = "Wall Run")
+	FVector WallNormal = FVector::ZeroVector;
 	
 	UPROPERTY(EditAnywhere, Category = "Wall Run")
 	float LineTraceDistance = 10.f;
@@ -57,12 +73,11 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Crouch")
 	float CrouchInterpSpeed = 1.f;
 
-	
-
 private:
 	void CrouchToTargetHeight(float TargetHeight, float Time);
 	AActor* CheckWall(const FVector& Direction, FHitResult& HitResult);
-	void CheckFacingWallDirection(const FVector& WallNormal);
+	void CheckFacingWallDirection(const FVector& Normal);
+	void StopRunningOnWall();
 	TScriptInterface<IIRunnableWall> RunnableWall;
 	bool CanWallRun;
 };

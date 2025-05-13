@@ -72,17 +72,36 @@ AActor* AFPSPlayer::CheckWall(const FVector& Direction, FHitResult& HitResult)
 }
 
 
-void AFPSPlayer::CheckFacingWallDirection(const FVector& WallNormal)
+void AFPSPlayer::CheckFacingWallDirection(const FVector& Normal)
 {
+	WallNormal = Normal;
 	const float FacingDir = FVector::DotProduct(GetActorRightVector(), WallNormal);
 	if (FMath::Abs(FacingDir) > 0.8f)
 	{
-		RunnableWall->RunOnWall(this, WallNormal);
+		RunnableWall->RunOnWall(this, WallNormal, FacingDir);
 	}
 	else
 	{
-		RunnableWall->StopRunningOnWall(this);
+		StopRunningOnWall();
 	}
+}
+
+void AFPSPlayer::JumpOffWall()	
+{
+	UE_LOG(LogTemp, Warning, TEXT("Jumping off the wall"));
+	StopRunningOnWall();
+	bIsJumpingOffWall = true; 
+	FVector PlayerCurrentVelocity = GetCharacterMovement()->Velocity;
+	FVector LaunchVelocity = -WallNormal * PlayerCurrentVelocity * JumpForce;
+	LaunchCharacter(LaunchVelocity, false, false);
+}
+
+void AFPSPlayer::StopRunningOnWall()
+{
+	bIsRunningOnWall = false;
+	GetCharacterMovement()->SetPlaneConstraintEnabled(false);
+	GetCharacterMovement()->GravityScale = DefaultGravityScale;
+	bCanJump = true;
 }
 
 void AFPSPlayer::StartSprinting()

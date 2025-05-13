@@ -21,28 +21,15 @@ ARunnableWall::ARunnableWall()
 	BoxComponent->SetCollisionResponseToChannel(ECC_WallRun, ECR_Block);
 }
 
-void ARunnableWall::RunOnWall(AFPSPlayer* FPSPlayer, const FVector WallNormal) 
+void ARunnableWall::RunOnWall(AFPSPlayer* FPSPlayer, const FVector WallNormal, float Direction) 
 {
 	if (!FPSPlayer) return;
 
-	UE_LOG(LogTemp, Warning, TEXT("RunOnWall"));
-	float FacingDir = FVector::DotProduct(WallNormal, FPSPlayer->GetActorRightVector());
-	if (FMath::Abs(FacingDir) > 0.8f)
-	{
-		FPSPlayer->GetCharacterMovement()->SetPlaneConstraintEnabled(true);
-		FPSPlayer->GetCharacterMovement()->SetPlaneConstraintNormal(WallNormal);
-		FPSPlayer->GetCharacterMovement()->GravityScale = WallRunGravityScale;
-	}
-}
-
-void ARunnableWall::StopRunningOnWall(AFPSPlayer* FPSPlayer)
-{
-	if (!FPSPlayer) return;
-
-	UE_LOG(LogTemp, Warning, TEXT("Stopping"));
-	FPSPlayer->bIsRunningOnWall = false;
-	FPSPlayer->GetCharacterMovement()->SetPlaneConstraintEnabled(false);
-	FPSPlayer->GetCharacterMovement()->GravityScale = DefaultGravityScale;
+	FPSPlayer->bCanJump = false;
+	FVector LaunchVelocity = FVector::CrossProduct(WallNormal, FPSPlayer->GetActorUpVector()) * WallRunSpeed * Direction;
+	FPSPlayer->LaunchCharacter(LaunchVelocity, true, true);
+	FPSPlayer->GetCharacterMovement()->GravityScale = WallRunGravityScale;
+	FPSPlayer->bIsRunningOnWall = true;
 }
 
 
