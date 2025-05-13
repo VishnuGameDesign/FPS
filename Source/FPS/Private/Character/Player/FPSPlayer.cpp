@@ -78,7 +78,7 @@ void AFPSPlayer::CheckFacingWallDirection(const FVector& Normal)
 	const float FacingDir = FVector::DotProduct(GetActorRightVector(), WallNormal);
 	if (FMath::Abs(FacingDir) > 0.8f)
 	{
-		RunnableWall->RunOnWall(this, WallNormal, FacingDir);
+		RunnableWall->RunOnWall(this, WallNormal, FacingDir, WallRunSpeed);
 	}
 	else
 	{
@@ -99,8 +99,6 @@ void AFPSPlayer::JumpOffWall()
 void AFPSPlayer::StopRunningOnWall()
 {
 	bIsRunningOnWall = false;
-	GetCharacterMovement()->SetPlaneConstraintEnabled(false);
-	GetCharacterMovement()->GravityScale = DefaultGravityScale;
 	bCanJump = true;
 }
 

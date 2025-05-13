@@ -19,7 +19,7 @@ class FPS_API IIRunnableWall
 	GENERATED_BODY()
 
 public:
-	virtual void RunOnWall(AFPSPlayer* FPSPlayer, FVector WallNormal, float Direction) = 0;
+	virtual void RunOnWall(AFPSPlayer* FPSPlayer, FVector Normal, float Direction, float Speed) = 0;
 
 	
 };

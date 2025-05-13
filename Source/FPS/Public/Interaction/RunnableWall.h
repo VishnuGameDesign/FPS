@@ -16,15 +16,9 @@ class FPS_API ARunnableWall : public AActor, public IIRunnableWall
 	
 public:	
 	ARunnableWall();
-	virtual void RunOnWall(AFPSPlayer* FPSPlayer, FVector WallNormal, float Direction) override;
+	virtual void RunOnWall(AFPSPlayer* FPSPlayer, FVector Normal, float Direction, float Speed) override;
 
 protected:
-	UPROPERTY(EditAnywhere, Category = "Wall Run")
-	float WallRunGravityScale = 0.5f;
-
-	UPROPERTY(EditAnywhere, Category = "Wall Run")
-	float WallRunSpeed = 800.f;
-
 	UPROPERTY(EditDefaultsOnly)
 	TObjectPtr<UStaticMeshComponent> WallMesh;
 

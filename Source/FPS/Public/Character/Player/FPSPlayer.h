@@ -56,7 +56,7 @@ protected:
 	float JumpForce = 2.f;
 	
 	UPROPERTY(EditAnywhere, Category = "Wall Run")
-	float DefaultGravityScale = 2.0f;
+	float WallRunSpeed = 600.f;
 
 	UPROPERTY(EditAnywhere, Category = "Wall Run")
 	FVector WallNormal = FVector::ZeroVector;

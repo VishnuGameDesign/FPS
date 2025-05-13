@@ -21,14 +21,13 @@ ARunnableWall::ARunnableWall()
 	BoxComponent->SetCollisionResponseToChannel(ECC_WallRun, ECR_Block);
 }
 
-void ARunnableWall::RunOnWall(AFPSPlayer* FPSPlayer, const FVector WallNormal, float Direction) 
+void ARunnableWall::RunOnWall(AFPSPlayer* FPSPlayer, const FVector Normal, float Direction, float Speed) 
 {
 	if (!FPSPlayer) return;
 
 	FPSPlayer->bCanJump = false;
-	FVector LaunchVelocity = FVector::CrossProduct(WallNormal, FPSPlayer->GetActorUpVector()) * WallRunSpeed * Direction;
+	FVector LaunchVelocity = FVector::CrossProduct(Normal, FPSPlayer->GetActorUpVector()) * Speed * Direction;
 	FPSPlayer->LaunchCharacter(LaunchVelocity, true, true);
-	FPSPlayer->GetCharacterMovement()->GravityScale = WallRunGravityScale;
 	FPSPlayer->bIsRunningOnWall = true;
 }
 
