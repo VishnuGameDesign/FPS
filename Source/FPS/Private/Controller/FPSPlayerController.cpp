@@ -35,6 +35,7 @@ void AFPSPlayerController::SetupInputComponent()
 
 	// move
 	EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AFPSPlayerController::Move);
+	EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Completed, this, &AFPSPlayerController::HandleNotMoving);
 	EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AFPSPlayerController::Look);
 	// jump
 	EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &AFPSPlayerController::HandleJump);
@@ -71,6 +72,34 @@ void AFPSPlayerController::Move(const FInputActionValue& InputActionValue)
 		ControlledPawn->AddMovementInput(ForwardDirection, InputAxisVector.Y);
 		ControlledPawn->AddMovementInput(RightDirection, InputAxisVector.X);
 	}
+	if (InputActionValue.GetMagnitude() > 0 &&  ControlledPawn->GetVelocity().Size() > 0.0f)
+	{
+		if (FPSCharacter->GetCharacterMovement()->IsFalling())
+		{
+			FPSCharacter->PlayerMovementState = EPlayerMovementState::Jumping;
+		}
+		else if (FPSCharacter->bIsCrouching)
+		{
+			FPSCharacter->PlayerMovementState = EPlayerMovementState::Crouching;
+		}
+		else if (FPSCharacter->bIsSprinting)
+		{
+			FPSCharacter->PlayerMovementState = EPlayerMovementState::Sprinting;
+		}
+		else if (FPSCharacter->GetVelocity().SizeSquared() > 0.f)
+		{
+			FPSCharacter->PlayerMovementState = EPlayerMovementState::Walking;
+		}
+		else
+		{
+			FPSCharacter->PlayerMovementState = EPlayerMovementState::Idle;
+		}
+	}
+}
+
+void AFPSPlayerController::HandleNotMoving(const FInputActionValue& InputActionValue)
+{
+	FPSCharacter->PlayerMovementState = EPlayerMovementState::Idle;
 }
 
 void AFPSPlayerController::Look(const FInputActionValue& InputActionValue)
@@ -95,6 +124,7 @@ void AFPSPlayerController::HandleJump(const FInputActionValue& InputActionValue)
 			UE_LOG(LogTemp, Warning, TEXT("Normal Jump"));
 			FPSCharacter->bIsJumping = true;
 			FPSCharacter->Jump();
+			FPSCharacter->PlayerMovementState = EPlayerMovementState::Jumping;
 		}
 		else
 		{
@@ -117,6 +147,8 @@ void AFPSPlayerController::HandleCrouch(const FInputActionValue& InputActionValu
 {
 	if (FPSCharacter)
 	{
+		FPSCharacter->bIsCrouching = true;
+		FPSCharacter->PlayerMovementState = EPlayerMovementState::Crouching;
 		FPSCharacter->StartCrouch();
 	}
 }
@@ -126,7 +158,9 @@ void AFPSPlayerController::HandleUnCrouch(const FInputActionValue& InputActionVa
 {
 	if (FPSCharacter)
 	{
+		FPSCharacter->bIsCrouching = false;
 		FPSCharacter->StopCrouch();
+		FPSCharacter->PlayerMovementState = EPlayerMovementState::Idle;
 	}
 }
 
@@ -134,6 +168,7 @@ void AFPSPlayerController::HandleSprinting(const FInputActionValue& InputActionV
 {
 	if (FPSCharacter)
 	{
+		FPSCharacter->bIsSprinting = true;
 		FPSCharacter->StartSprinting();
 	}
 }
@@ -143,7 +178,9 @@ void AFPSPlayerController::HandleStopSprinting(const FInputActionValue& InputAct
 {
 	if (FPSCharacter)
 	{
+		FPSCharacter->bIsSprinting = false;
 		FPSCharacter->StopSprinting();
+		FPSCharacter->PlayerMovementState = EPlayerMovementState::Idle;
 	}
 }
 

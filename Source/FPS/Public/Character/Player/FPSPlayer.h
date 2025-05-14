@@ -11,6 +11,18 @@
 
 class UCameraComponent;
 
+UENUM(BlueprintType)
+enum class EPlayerMovementState : uint8
+{
+	Idle,
+	Walking,
+	Sprinting,
+	Crouching,
+	Jumping,
+	WallJumping,
+	WallRunning,
+};
+
 UCLASS()
 class FPS_API AFPSPlayer : public AFPSCharacterBase
 {
@@ -23,6 +35,12 @@ public:
 	void StartCrouch();
 	void StopCrouch();
 	void JumpOffWall();
+
+	UPROPERTY(BlueprintReadOnly, Category = "Player Movement Settings")
+	bool bIsSprinting = false;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Player Movement Settings")
+	bool bIsCrouching = false;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Player Movement Settings")
 	bool bIsJumping = false;
@@ -39,7 +57,10 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Player Movement Settings")
 	bool bInitSmoothCrouch = false;
 
+	UPROPERTY(EditAnywhere, Category = "Player States")
+	EPlayerMovementState PlayerMovementState { EPlayerMovementState::Idle };
 protected:
+	
 	UPROPERTY(EditAnywhere, Category = "Camera")
 	TObjectPtr<UCameraComponent> PlayerCam;
 

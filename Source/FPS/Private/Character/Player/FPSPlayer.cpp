@@ -27,7 +27,8 @@ AFPSPlayer::AFPSPlayer()
 void AFPSPlayer::Tick(const float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	
+
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("Player State: %s"), *UEnum::GetValueAsString(PlayerMovementState)));	
 	// smooth crouching 
 	if (bInitSmoothCrouch)
 		CrouchToTargetHeight(CrouchedCapsuleHalfHeight, DeltaTime);

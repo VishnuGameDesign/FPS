@@ -25,6 +25,7 @@ protected:
 	virtual void OnPossess(APawn* InPawn) override;
 	
 	void Move(const FInputActionValue& InputActionValue);
+	void HandleNotMoving(const FInputActionValue& InputActionValue);
 	void Look(const FInputActionValue& InputActionValue);
 	void HandleJump(const FInputActionValue& InputActionValue);
 	void HandleStopJumping(const FInputActionValue& InputActionValue);
