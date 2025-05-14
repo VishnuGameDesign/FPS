@@ -22,6 +22,7 @@ public:
 protected:
 	virtual void BeginPlay() override;
 	virtual void SetupInputComponent() override;
+	virtual void Tick(float DeltaTime) override;
 	virtual void OnPossess(APawn* InPawn) override;
 	
 	void Move(const FInputActionValue& InputActionValue);
@@ -35,6 +36,7 @@ protected:
 	void HandleStopSprinting(const FInputActionValue& InputActionValue);
 	void Shoot(const FInputActionValue& InputActionValue);
 	void Reload(const FInputActionValue& InputActionValue);
+	void UpdateMovementState();
 
 private:
 	UPROPERTY(EditAnywhere, Category = "Input Maps")

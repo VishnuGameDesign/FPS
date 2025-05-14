@@ -26,9 +26,10 @@ void ARunnableWall::RunOnWall(AFPSPlayer* FPSPlayer, const FVector Normal, float
 	if (!FPSPlayer) return;
 
 	FPSPlayer->bCanJump = false;
-	FVector LaunchVelocity = FVector::CrossProduct(Normal, FPSPlayer->GetActorUpVector()) * Speed * Direction;
-	FPSPlayer->LaunchCharacter(LaunchVelocity, true, true);
 	FPSPlayer->bIsRunningOnWall = true;
+	
+	const FVector LaunchVelocity = FVector::CrossProduct(Normal, FPSPlayer->GetActorUpVector()) * Speed * Direction;
+	FPSPlayer->LaunchCharacter(LaunchVelocity, true, true);
 }
 
 

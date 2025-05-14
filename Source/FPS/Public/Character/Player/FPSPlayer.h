@@ -59,6 +59,7 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "Player States")
 	EPlayerMovementState PlayerMovementState { EPlayerMovementState::Idle };
+	
 protected:
 	
 	UPROPERTY(EditAnywhere, Category = "Camera")

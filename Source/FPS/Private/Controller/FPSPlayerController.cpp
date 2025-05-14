@@ -30,7 +30,7 @@ void AFPSPlayerController::BeginPlay()
 void AFPSPlayerController::SetupInputComponent()
 {
 	Super::SetupInputComponent();
-
+	
 	UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(InputComponent);
 
 	// move
@@ -49,6 +49,12 @@ void AFPSPlayerController::SetupInputComponent()
 	// gun 
 	EnhancedInputComponent->BindAction(ShootAction, ETriggerEvent::Triggered, this, &AFPSPlayerController::Shoot);
 	EnhancedInputComponent->BindAction(ReloadAction, ETriggerEvent::Triggered, this, &AFPSPlayerController::Reload);
+}
+
+void AFPSPlayerController::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+	UpdateMovementState();
 }
 
 void AFPSPlayerController::OnPossess(APawn* InPawn)
@@ -71,29 +77,6 @@ void AFPSPlayerController::Move(const FInputActionValue& InputActionValue)
 	{
 		ControlledPawn->AddMovementInput(ForwardDirection, InputAxisVector.Y);
 		ControlledPawn->AddMovementInput(RightDirection, InputAxisVector.X);
-	}
-	if (InputActionValue.GetMagnitude() > 0 &&  ControlledPawn->GetVelocity().Size() > 0.0f)
-	{
-		if (FPSCharacter->GetCharacterMovement()->IsFalling())
-		{
-			FPSCharacter->PlayerMovementState = EPlayerMovementState::Jumping;
-		}
-		else if (FPSCharacter->bIsCrouching)
-		{
-			FPSCharacter->PlayerMovementState = EPlayerMovementState::Crouching;
-		}
-		else if (FPSCharacter->bIsSprinting)
-		{
-			FPSCharacter->PlayerMovementState = EPlayerMovementState::Sprinting;
-		}
-		else if (FPSCharacter->GetVelocity().SizeSquared() > 0.f)
-		{
-			FPSCharacter->PlayerMovementState = EPlayerMovementState::Walking;
-		}
-		else
-		{
-			FPSCharacter->PlayerMovementState = EPlayerMovementState::Idle;
-		}
 	}
 }
 
@@ -121,7 +104,6 @@ void AFPSPlayerController::HandleJump(const FInputActionValue& InputActionValue)
 	{
 		if (!FPSCharacter->bIsRunningOnWall && FPSCharacter->bCanJump)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Normal Jump"));
 			FPSCharacter->bIsJumping = true;
 			FPSCharacter->Jump();
 			FPSCharacter->PlayerMovementState = EPlayerMovementState::Jumping;
@@ -191,6 +173,34 @@ void AFPSPlayerController::Shoot(const FInputActionValue& InputActionValue)
 
 void AFPSPlayerController::Reload(const FInputActionValue& InputActionValue)
 {
+}
+
+void AFPSPlayerController::UpdateMovementState()
+{
+	if (FPSCharacter->bIsRunningOnWall)
+	{
+		FPSCharacter->PlayerMovementState = EPlayerMovementState::WallRunning;
+	}
+	else if (FPSCharacter->GetCharacterMovement()->IsFalling())
+	{
+		FPSCharacter->PlayerMovementState = EPlayerMovementState::Jumping;
+	}
+	else if (FPSCharacter->bIsCrouching)
+	{
+		FPSCharacter->PlayerMovementState = EPlayerMovementState::Crouching;
+	}
+	else if (FPSCharacter->bIsSprinting)
+	{
+		FPSCharacter->PlayerMovementState = EPlayerMovementState::Sprinting;
+	}
+	else if (FPSCharacter->GetVelocity().SizeSquared() > 0.f)
+	{
+		FPSCharacter->PlayerMovementState = EPlayerMovementState::Walking;
+	}
+	else
+	{
+		FPSCharacter->PlayerMovementState = EPlayerMovementState::Idle;
+	}
 }
 
 

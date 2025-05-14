@@ -69,6 +69,10 @@ AActor* AFPSPlayer::CheckWall(const FVector& Direction, FHitResult& HitResult)
 			return HitResult.GetActor();
 		}
 	}
+	else if(bIsRunningOnWall)
+	{
+		StopRunningOnWall();
+	}
 	return nullptr;
 }
 
@@ -77,13 +81,9 @@ void AFPSPlayer::CheckFacingWallDirection(const FVector& Normal)
 {
 	WallNormal = Normal;
 	const float FacingDir = FVector::DotProduct(GetActorRightVector(), WallNormal);
-	if (FMath::Abs(FacingDir) > 0.8f)
+	if (FMath::Abs(FacingDir) > 0.5f)
 	{
 		RunnableWall->RunOnWall(this, WallNormal, FacingDir, WallRunSpeed);
-	}
-	else
-	{
-		StopRunningOnWall();
 	}
 }
 
