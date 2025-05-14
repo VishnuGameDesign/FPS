@@ -38,7 +38,7 @@ void AFPSPlayerController::SetupInputComponent()
 	EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Completed, this, &AFPSPlayerController::HandleNotMoving);
 	EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AFPSPlayerController::Look);
 	// jump
-	EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &AFPSPlayerController::HandleJump);
+	EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &AFPSPlayerController::HandleJump);
 	EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &AFPSPlayerController::HandleStopJumping);
 	// crouch
 	EnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Triggered, this, &AFPSPlayerController::HandleCrouch);
@@ -55,6 +55,7 @@ void AFPSPlayerController::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	UpdateMovementState();
+
 }
 
 void AFPSPlayerController::OnPossess(APawn* InPawn)
@@ -102,16 +103,15 @@ void AFPSPlayerController::HandleJump(const FInputActionValue& InputActionValue)
 {
 	if (FPSCharacter)
 	{
-		if (!FPSCharacter->bIsRunningOnWall && FPSCharacter->bCanJump)
+		if (FPSCharacter->bIsRunningOnWall)
+		{
+			FPSCharacter->bIsJumpingOffWall = true;
+			FPSCharacter->JumpOffWall();
+		}
+		else 
 		{
 			FPSCharacter->bIsJumping = true;
 			FPSCharacter->Jump();
-			FPSCharacter->PlayerMovementState = EPlayerMovementState::Jumping;
-		}
-		else
-		{
-			FPSCharacter->bIsJumping = true;
-			// FPSCharacter->JumpOffWall();
 		}
 	}
 }
@@ -122,6 +122,7 @@ void AFPSPlayerController::HandleStopJumping(const FInputActionValue& InputActio
 	{
 		FPSCharacter->StopJumping();
 		FPSCharacter->bIsJumping = false;
+		FPSCharacter->PlayerMovementState = EPlayerMovementState::Idle;
 	}
 }
 
@@ -177,7 +178,11 @@ void AFPSPlayerController::Reload(const FInputActionValue& InputActionValue)
 
 void AFPSPlayerController::UpdateMovementState()
 {
-	if (FPSCharacter->bIsRunningOnWall)
+	if (FPSCharacter->bIsJumpingOffWall)
+	{
+		FPSCharacter->PlayerMovementState = EPlayerMovementState::WallJumping;
+	}
+	else if (FPSCharacter->bIsRunningOnWall)
 	{
 		FPSCharacter->PlayerMovementState = EPlayerMovementState::WallRunning;
 	}
@@ -202,7 +207,3 @@ void AFPSPlayerController::UpdateMovementState()
 		FPSCharacter->PlayerMovementState = EPlayerMovementState::Idle;
 	}
 }
-
-
-
-
