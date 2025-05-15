@@ -92,22 +92,24 @@ AActor* AFPSPlayer::CheckWall(const FVector& Direction, FHitResult& HitResult)
 void AFPSPlayer::CheckFacingWallDirection(const FVector& Normal)
 {
 	WallNormal = Normal;
-	const float FacingDir = FVector::DotProduct(GetActorRightVector(), WallNormal);
-	if (FMath::Abs(FacingDir) > 0.5f)
+	FacingDirection = FVector::DotProduct(GetActorRightVector(), WallNormal);
+	if (FMath::Abs(FacingDirection) > 0.8f)
 	{
-		RunnableWall->RunOnWall(this, WallNormal, FacingDir, WallRunSpeed);
+		RunnableWall->RunOnWall(this, WallNormal, FacingDirection, WallRunSpeed);
 	}
 }
 
 void AFPSPlayer::JumpOffWall()	
 {
-	FVector Direction = WallNormal.GetSafeNormal() + FVector::UpVector * 1.2f;
-	Direction.Normalize();
+	bIsJumpingOffWall = true;
+	JumpCurrentCount = JumpCurrentCount - 1;
 	
-	FVector LaunchVelocity = Direction * JumpForce;
+	FVector Direction = WallNormal + FVector::UpVector * 2.0f;
+	Direction.Normalize();
+
+	FVector LaunchVelocity = Direction * JumpXForce + FVector::UpVector * JumpYForce;
 	LaunchCharacter(LaunchVelocity, false, false);
 	SetMovementState(EPlayerMovementState::WallJumping);
-	bIsJumpingOffWall = true;
 	bCanWallRun = false;
 
 	StopRunningOnWall();
@@ -124,13 +126,14 @@ void AFPSPlayer::SetMovementState(EPlayerMovementState NewMovementState)
 
 void AFPSPlayer::StopRunningOnWall()
 {
+	if (JumpMaxCount > MaxJumCount)
+	{
+		JumpMaxCount = MaxJumCount;
+	}
+	
 	if (bIsRunningOnWall)
 	{
 		bIsRunningOnWall = false;
-		if (bIsJumpingOffWall)
-		{
-			bIsJumpingOffWall = false;
-		}
 	}
 }
 
@@ -159,6 +162,7 @@ void AFPSPlayer::StopCrouch()
 void AFPSPlayer::ResetWallRun()
 {
 	bCanWallRun = true;
+	bIsJumpingOffWall = false;
 }
 
 void AFPSPlayer::CrouchToTargetHeight(float TargetHeight, float Time)

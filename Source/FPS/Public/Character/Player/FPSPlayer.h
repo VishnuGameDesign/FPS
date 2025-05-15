@@ -56,8 +56,14 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Player Movement Settings")
 	bool bInitSmoothCrouch = false;
 
-	UPROPERTY(EditAnywhere, Category = "Player States")
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Player States")
 	EPlayerMovementState PlayerMovementState { EPlayerMovementState::Idle };
+	
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Wall Run")
+	FVector WallNormal = FVector::ZeroVector;
+
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Wall Run")
+	float FacingDirection = 0.0f;
 	
 protected:
 	
@@ -74,14 +80,23 @@ protected:
 	float SprintSpeed = 800.f;
 
 	UPROPERTY(EditAnywhere, Category = "Wall Jump")
-	float JumpForce = 2.f;
+	float JumpXForce = 2.f;
+
+	UPROPERTY(EditAnywhere, Category = "Wall Jump")
+	float JumpYForce = 2.f;
+
+	UPROPERTY(EditAnywhere, Category = "Wall Jump")
+	int MaxJumCount = 2;
 	
 	UPROPERTY(EditAnywhere, Category = "Wall Run")
 	float WallRunSpeed = 600.f;
-
-	UPROPERTY(EditAnywhere, Category = "Wall Run")
-	FVector WallNormal = FVector::ZeroVector;
 	
+	UPROPERTY(EditAnywhere, Category = "Wall Run")
+	float WallRunCooldownTime = 0.5f;
+	
+	UPROPERTY(EditAnywhere, Category = "Wall Run")
+	bool bCanWallRun = true;
+
 	UPROPERTY(EditAnywhere, Category = "Wall Run")
 	float LineTraceDistance = 10.f;
 	
@@ -93,9 +108,6 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "Crouch")
 	float CrouchInterpSpeed = 1.f;
-
-	float WallRunCooldownTime = 0.5f;
-	bool bCanWallRun = true;
 
 private:
 	void CrouchToTargetHeight(float TargetHeight, float Time);

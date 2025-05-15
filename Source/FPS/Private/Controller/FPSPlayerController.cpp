@@ -55,7 +55,6 @@ void AFPSPlayerController::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	UpdateMovementState();
-
 }
 
 void AFPSPlayerController::OnPossess(APawn* InPawn)
@@ -105,7 +104,6 @@ void AFPSPlayerController::HandleJump(const FInputActionValue& InputActionValue)
 	{
 		if (FPSCharacter->bIsRunningOnWall)
 		{
-			FPSCharacter->bIsJumpingOffWall = true;
 			FPSCharacter->JumpOffWall();
 		}
 		else 
@@ -180,14 +178,17 @@ void AFPSPlayerController::UpdateMovementState()
 {
 	if (FPSCharacter->bIsJumpingOffWall)
 	{
+		OnPlayerWallJumping.Broadcast();
 		FPSCharacter->PlayerMovementState = EPlayerMovementState::WallJumping;
 	}
 	else if (FPSCharacter->bIsRunningOnWall)
 	{
+		OnPlayerWallRunning.Broadcast();
 		FPSCharacter->PlayerMovementState = EPlayerMovementState::WallRunning;
 	}
-	else if (FPSCharacter->GetCharacterMovement()->IsFalling())
+	else if (FPSCharacter->GetCharacterMovement()->IsFalling() && !FPSCharacter->bIsJumpingOffWall)
 	{
+		OnPlayerFalling.Broadcast();
 		FPSCharacter->PlayerMovementState = EPlayerMovementState::Jumping;
 	}
 	else if (FPSCharacter->bIsCrouching)
