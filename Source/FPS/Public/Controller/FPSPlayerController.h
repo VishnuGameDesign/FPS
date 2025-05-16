@@ -14,6 +14,8 @@ class UInputAction;
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FPlayerWallRunning);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FPlayerWallJumping);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FPlayerFalling);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FPickUpInputPressed);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FDropInputPressed);
 
 UCLASS(Blueprintable)
 class FPS_API AFPSPlayerController : public APlayerController
@@ -25,6 +27,21 @@ public:
 
 	UPROPERTY(BlueprintReadOnly, Category = "FPS Character")
 	TObjectPtr<AFPSPlayer> FPSCharacter;
+
+	UPROPERTY(BlueprintAssignable, Category = "Player Events")
+	FPlayerWallRunning OnPlayerWallRunning;
+
+	UPROPERTY(BlueprintAssignable, Category = "Player Events")
+	FPlayerWallJumping OnPlayerWallJumping;
+
+	UPROPERTY(BlueprintAssignable, Category = "Player Events")
+	FPlayerFalling OnPlayerFalling;
+	
+	UPROPERTY(BlueprintAssignable, Category = "Player Events")
+	FPickUpInputPressed OnPickupPressed;
+
+	UPROPERTY(BlueprintAssignable, Category = "Player Events")
+	FDropInputPressed OnDropPressed;
 	
 protected:
 	virtual void BeginPlay() override;
@@ -41,18 +58,11 @@ protected:
 	void HandleUnCrouch(const FInputActionValue& InputActionValue);
 	void HandleSprinting(const FInputActionValue& InputActionValue);
 	void HandleStopSprinting(const FInputActionValue& InputActionValue);
+	void HandlePickup(const FInputActionValue& InputActionValue);
+	void HandleDrop(const FInputActionValue& InputActionValue);
 	void Shoot(const FInputActionValue& InputActionValue);
 	void Reload(const FInputActionValue& InputActionValue);
 	void UpdateMovementState();
-
-	UPROPERTY(BlueprintAssignable, Category = "Player Events")
-	FPlayerWallRunning OnPlayerWallRunning;
-
-	UPROPERTY(BlueprintAssignable, Category = "Player Events")
-	FPlayerWallJumping OnPlayerWallJumping;
-
-	UPROPERTY(BlueprintAssignable, Category = "Player Events")
-	FPlayerFalling OnPlayerFalling;
 
 private:
 	UPROPERTY(EditAnywhere, Category = "Input Maps")
@@ -75,6 +85,12 @@ private:
 	
 	UPROPERTY(EditAnywhere, Category = "Input Actions")
 	TObjectPtr<UInputAction> SprintAction;
+
+	UPROPERTY(EditAnywhere, Category = "Input Actions")
+	TObjectPtr<UInputAction> PickUpAction;
+
+	UPROPERTY(EditAnywhere, Category = "Input Actions")
+	TObjectPtr<UInputAction> DropAction;
 	
 	UPROPERTY(EditAnywhere, Category = "Input Actions")
 	TObjectPtr<UInputAction> ShootAction;

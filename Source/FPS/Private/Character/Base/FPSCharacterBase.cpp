@@ -5,6 +5,11 @@
 AFPSCharacterBase::AFPSCharacterBase()
 {
 	PrimaryActorTick.bCanEverTick = true;
+
+	Weapon = CreateDefaultSubobject<USkeletalMeshComponent>("Weapon");
+	Weapon->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	Weapon->bCastDynamicShadow = false;
+	Weapon->CastShadow = false;
 }
 
 void AFPSCharacterBase::BeginPlay()

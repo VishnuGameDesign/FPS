@@ -165,6 +165,16 @@ void AFPSPlayerController::HandleStopSprinting(const FInputActionValue& InputAct
 	}
 }
 
+void AFPSPlayerController::HandlePickup(const FInputActionValue& InputActionValue)
+{
+	OnPickupPressed.Broadcast();
+}
+
+void AFPSPlayerController::HandleDrop(const FInputActionValue& InputActionValue)
+{
+	OnDropPressed.Broadcast();
+}
+
 
 void AFPSPlayerController::Shoot(const FInputActionValue& InputActionValue)
 {

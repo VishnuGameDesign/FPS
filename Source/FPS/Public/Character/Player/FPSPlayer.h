@@ -37,6 +37,11 @@ public:
 	void ResetWallRun();
 	void JumpOffWall();
 	void SetMovementState(EPlayerMovementState NewMovementState);
+	TObjectPtr<USkeletalMeshComponent> GetPlayerMesh();
+
+	
+	UPROPERTY(BlueprintReadWrite, Category = "Weapon")
+	FName WeaponSocketName = FName("WeaponHandSocket");
 
 	UPROPERTY(BlueprintReadOnly, Category = "Player Movement Settings")
 	bool bIsSprinting = false;

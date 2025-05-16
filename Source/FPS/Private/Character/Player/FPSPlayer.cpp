@@ -21,6 +21,8 @@ AFPSPlayer::AFPSPlayer()
 	FPSPlayerMesh->bCastDynamicShadow = false;
 	FPSPlayerMesh->CastShadow = false;
 
+	Weapon->SetupAttachment(FPSPlayerMesh, WeaponSocketName);
+	
 	GetMesh()->SetOwnerNoSee(true);
 	GetCharacterMovement()->GetNavAgentPropertiesRef().bCanCrouch = true;
 }
@@ -122,6 +124,11 @@ void AFPSPlayer::SetMovementState(EPlayerMovementState NewMovementState)
 	{
 		PlayerMovementState = NewMovementState;
 	}
+}
+
+TObjectPtr<USkeletalMeshComponent> AFPSPlayer::GetPlayerMesh()
+{
+	return FPSPlayerMesh;
 }
 
 void AFPSPlayer::StopRunningOnWall()
