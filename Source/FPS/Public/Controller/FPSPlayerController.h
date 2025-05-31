@@ -54,8 +54,9 @@ protected:
 	void Look(const FInputActionValue& InputActionValue);
 	void HandleJump(const FInputActionValue& InputActionValue);
 	void HandleStopJumping(const FInputActionValue& InputActionValue);
-	void HandleCrouch(const FInputActionValue& InputActionValue);
-	void HandleUnCrouch(const FInputActionValue& InputActionValue);
+	void InitCrouching(const FInputActionValue& InputActionValue);
+	void HandleCrouch();
+	void HandleUnCrouch();
 	void HandleSprinting(const FInputActionValue& InputActionValue);
 	void HandleStopSprinting(const FInputActionValue& InputActionValue);
 	void HandlePickup(const FInputActionValue& InputActionValue);
@@ -97,4 +98,7 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = "Input Actions")
 	TObjectPtr<UInputAction> ReloadAction;
+
+private:
+	bool bCrouchedPressed = false;
 };

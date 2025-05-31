@@ -1,6 +1,5 @@
 // Copyright by Vishnu Suresh
 
-
 #include "Controller/FPSPlayerController.h"
 #include "EnhancedInputSubsystems.h"
 #include "EnhancedInputComponent.h"
@@ -41,8 +40,7 @@ void AFPSPlayerController::SetupInputComponent()
 	EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &AFPSPlayerController::HandleJump);
 	EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &AFPSPlayerController::HandleStopJumping);
 	// crouch
-	EnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Triggered, this, &AFPSPlayerController::HandleCrouch);
-	EnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Completed, this, &AFPSPlayerController::HandleUnCrouch);
+	EnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Started, this, &AFPSPlayerController::InitCrouching);
 	// sprint
 	EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Triggered, this, &AFPSPlayerController::HandleSprinting);
 	EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Completed, this, &AFPSPlayerController::HandleStopSprinting);
@@ -55,6 +53,7 @@ void AFPSPlayerController::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	UpdateMovementState();
+	UE_LOG(LogTemp, Warning, TEXT("%s"), *UEnum::GetValueAsString(FPSCharacter->PlayerMovementState));
 }
 
 void AFPSPlayerController::OnPossess(APawn* InPawn)
@@ -124,24 +123,41 @@ void AFPSPlayerController::HandleStopJumping(const FInputActionValue& InputActio
 	}
 }
 
-void AFPSPlayerController::HandleCrouch(const FInputActionValue& InputActionValue)
+void AFPSPlayerController::InitCrouching(const FInputActionValue& InputActionValue)
+{
+	bCrouchedPressed = !bCrouchedPressed; 
+	if (bCrouchedPressed)
+	{
+		HandleCrouch();
+	}
+	else
+	{
+		HandleUnCrouch();
+	}
+}
+
+void AFPSPlayerController::HandleCrouch()
 {
 	if (FPSCharacter)
 	{
-		FPSCharacter->bIsCrouching = true;
-		FPSCharacter->PlayerMovementState = EPlayerMovementState::Crouching;
-		FPSCharacter->StartCrouch();
+		bool bVelocityGained = FPSCharacter->GetCharacterMovement()->GetLastUpdateVelocity().SizeSquared() > FMath::Square(FPSCharacter->SlideTargetVelocity); 
+		if (bVelocityGained)
+		{
+			FPSCharacter->InitSliding();
+		}
+		else
+		{
+			FPSCharacter->StartCrouch();
+		}
 	}
 }
 
 
-void AFPSPlayerController::HandleUnCrouch(const FInputActionValue& InputActionValue)
+void AFPSPlayerController::HandleUnCrouch()
 {
 	if (FPSCharacter)
 	{
-		FPSCharacter->bIsCrouching = false;
 		FPSCharacter->StopCrouch();
-		FPSCharacter->PlayerMovementState = EPlayerMovementState::Idle;
 	}
 }
 
@@ -149,8 +165,10 @@ void AFPSPlayerController::HandleSprinting(const FInputActionValue& InputActionV
 {
 	if (FPSCharacter)
 	{
-		FPSCharacter->bIsSprinting = true;
-		FPSCharacter->StartSprinting();
+		if (FPSCharacter->bCanSprint)
+		{
+			FPSCharacter->StartSprinting();
+		}
 	}
 }
 
@@ -159,9 +177,7 @@ void AFPSPlayerController::HandleStopSprinting(const FInputActionValue& InputAct
 {
 	if (FPSCharacter)
 	{
-		FPSCharacter->bIsSprinting = false;
 		FPSCharacter->StopSprinting();
-		FPSCharacter->PlayerMovementState = EPlayerMovementState::Idle;
 	}
 }
 
@@ -201,13 +217,17 @@ void AFPSPlayerController::UpdateMovementState()
 		OnPlayerFalling.Broadcast();
 		FPSCharacter->PlayerMovementState = EPlayerMovementState::Jumping;
 	}
-	else if (FPSCharacter->bIsCrouching)
+	else if (FPSCharacter->bIsSliding)
 	{
-		FPSCharacter->PlayerMovementState = EPlayerMovementState::Crouching;
+		FPSCharacter->PlayerMovementState = EPlayerMovementState::Sliding;
 	}
 	else if (FPSCharacter->bIsSprinting)
 	{
 		FPSCharacter->PlayerMovementState = EPlayerMovementState::Sprinting;
+	}
+	else if (FPSCharacter->bIsCrouching)
+	{
+		FPSCharacter->PlayerMovementState = EPlayerMovementState::Crouching;
 	}
 	else if (FPSCharacter->GetVelocity().SizeSquared() > 0.f)
 	{

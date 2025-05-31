@@ -2,12 +2,9 @@
 
 #include "Character/Player/FPSPlayer.h"
 
-#include "MovieSceneFwd.h"
-#include "VectorTypes.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
-#include "Math/UnitConversion.h"
 
 AFPSPlayer::AFPSPlayer()
 {
@@ -25,6 +22,8 @@ AFPSPlayer::AFPSPlayer()
 	
 	GetMesh()->SetOwnerNoSee(true);
 	GetCharacterMovement()->GetNavAgentPropertiesRef().bCanCrouch = true;
+
+	OriginalGroundFriction = GetCharacterMovement()->GroundFriction;
 }
 
 void AFPSPlayer::Tick(const float DeltaTime)
@@ -63,7 +62,23 @@ void AFPSPlayer::Tick(const float DeltaTime)
 			}
 		}
 	}
-	
+
+	UE_LOG(LogTemp, Warning, TEXT("%f"), ElapsedTime);
+
+	if (bWantsToSlide)
+	{
+		GroundCheck();
+		if (!GroundNormal.IsNearlyZero())
+		{
+			StartSliding();
+			ElapsedTime += DeltaTime;
+			if (ElapsedTime >= SlideDuration)
+			{
+				StopSliding();
+				ElapsedTime = 0.0f;
+			}
+		}
+	}
 }
 
 AActor* AFPSPlayer::CheckWall(const FVector& Direction, FHitResult& HitResult)
@@ -118,6 +133,30 @@ void AFPSPlayer::JumpOffWall()
 	GetWorldTimerManager().SetTimer(WallRunCooldownHandle, this, &AFPSPlayer::ResetWallRun, WallRunCooldownTime, false);
 }
 
+void AFPSPlayer::GroundCheck()
+{
+	if (!GetCharacterMovement()->IsMovingOnGround())
+		return;
+
+	FHitResult GroundHit;
+	float TraceLength = 200.f;
+	
+	const FVector TraceStart = GetActorLocation();
+	const FVector TraceEnd = TraceStart + (-GetActorUpVector() * TraceLength);
+
+	FCollisionQueryParams Params;
+	Params.AddIgnoredActor(this);
+
+	if (GetWorld()->LineTraceSingleByChannel(GroundHit, TraceStart, TraceEnd, ECC_Ground, Params))
+	{
+        DrawDebugLine(GetWorld(), TraceStart, TraceEnd, GroundHit.bBlockingHit ? FColor::Blue : FColor::Red, true, 1.f, 0, 1.f);
+		if (GroundHit.bBlockingHit)
+		{
+			GroundNormal = GroundHit.Normal;
+		}
+	}
+}
+
 void AFPSPlayer::SetMovementState(EPlayerMovementState NewMovementState)
 {
 	if (PlayerMovementState != NewMovementState)
@@ -146,24 +185,52 @@ void AFPSPlayer::StopRunningOnWall()
 
 void AFPSPlayer::StartSprinting()
 {
+	bIsSprinting = true;
 	GetCharacterMovement()->MaxWalkSpeed = SprintSpeed;
 }
 
 void AFPSPlayer::StopSprinting()
 {
+	bIsSprinting = false;
 	GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
 }
 
 void AFPSPlayer::StartCrouch()
 {
+	bIsCrouching = true; 
 	bInitSmoothCrouch = true;
+	bCanSprint = false;
 	GetCharacterMovement()->MaxWalkSpeed = GetCharacterMovement()->MaxWalkSpeedCrouched;
 }
 
 void AFPSPlayer::StopCrouch()
 {
+	bIsCrouching = false;
+	bInitSmoothCrouch = false;
+	bCanSprint = true;
+	GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
+}
+
+void AFPSPlayer::InitSliding()
+{
+	bWantsToSlide = true;
+}
+
+void AFPSPlayer::StartSliding()
+{
+	bIsSliding = true;
+	bInitSmoothCrouch = true;
+	GetCharacterMovement()->MaxWalkSpeed = SlideSpeed;
+	GetCharacterMovement()->GroundFriction = SlideFriction;
+}
+
+void AFPSPlayer::StopSliding()
+{
+	bWantsToSlide = false;
+	bIsSliding = false;
 	bInitSmoothCrouch = false;
 	GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
+	GetCharacterMovement()->GroundFriction = OriginalGroundFriction;
 }
 
 void AFPSPlayer::ResetWallRun()

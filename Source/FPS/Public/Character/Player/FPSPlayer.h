@@ -8,6 +8,7 @@
 #include "FPSPlayer.generated.h"
 
 #define ECC_WallRun ECC_GameTraceChannel2
+#define ECC_Ground ECC_GameTraceChannel3
 
 class UCameraComponent;
 
@@ -18,6 +19,7 @@ enum class EPlayerMovementState : uint8
 	Walking,
 	Sprinting,
 	Crouching,
+	Sliding,
 	Jumping,
 	WallJumping,
 	WallRunning,
@@ -33,13 +35,17 @@ public:
 	void StartSprinting();
 	void StopSprinting();
 	void StartCrouch();
+	void InitSliding();
+	void StartSliding();
+	void StopSliding();
 	void StopCrouch();
 	void ResetWallRun();
 	void JumpOffWall();
+	void GroundCheck();
 	void SetMovementState(EPlayerMovementState NewMovementState);
+
 	TObjectPtr<USkeletalMeshComponent> GetPlayerMesh();
 
-	
 	UPROPERTY(BlueprintReadWrite, Category = "Weapon")
 	FName WeaponSocketName = FName("WeaponHandSocket");
 
@@ -48,6 +54,9 @@ public:
 
 	UPROPERTY(BlueprintReadOnly, Category = "Player Movement Settings")
 	bool bIsCrouching = false;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Player Movement Settings")
+	bool bIsSliding = false;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Player Movement Settings")
 	bool bIsJumping = false;
@@ -61,6 +70,9 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Player Movement Settings")
 	bool bInitSmoothCrouch = false;
 
+	UPROPERTY(EditAnywhere, Category = "Player Movement Settings")
+	bool bCanSprint = true;
+
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Player States")
 	EPlayerMovementState PlayerMovementState { EPlayerMovementState::Idle };
 	
@@ -69,6 +81,9 @@ public:
 
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Wall Run")
 	float FacingDirection = 0.0f;
+		
+	UPROPERTY(EditAnywhere, Category = "Movement")
+	float SlideTargetVelocity = 800.f;
 	
 protected:
 	
@@ -83,6 +98,15 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "Movement")
 	float SprintSpeed = 800.f;
+
+	UPROPERTY(EditAnywhere, Category = "Movement")
+	float SlideFriction = 0.0f;
+
+	UPROPERTY(EditAnywhere, Category = "Movement")
+	float SlideDuration = 3.f;
+
+	UPROPERTY(EditAnywhere, Category = "Movement")
+	float SlideSpeed = 1200.f;
 
 	UPROPERTY(EditAnywhere, Category = "Wall Jump")
 	float JumpXForce = 2.f;
@@ -122,4 +146,9 @@ private:
 	TScriptInterface<IIRunnableWall> RunnableWall;
 	bool CanWallRun;
 	FTimerHandle WallRunCooldownHandle;
+	FTimerHandle SlideTimeHandle;
+	FVector GroundNormal = FVector::ZeroVector;
+	float OriginalGroundFriction = 0.f;
+	bool bWantsToSlide = false;
+	float ElapsedTime = 0.0f;
 };

@@ -2,13 +2,9 @@
 
 
 #include "Weapon/WeaponBase.h"
-
-#include "MovieSceneTracksComponentTypes.h"
 #include "Character/Player/FPSPlayer.h"
 #include "Components/BoxComponent.h"
 #include "Controller/FPSPlayerController.h"
-#include "Preferences/PersonaOptions.h"
-#include "Slate/SGameLayerManager.h"
 
 AWeaponBase::AWeaponBase()
 {
