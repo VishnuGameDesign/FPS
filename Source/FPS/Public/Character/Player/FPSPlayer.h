@@ -70,9 +70,6 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Player Movement Settings")
 	bool bInitSmoothCrouch = false;
 
-	UPROPERTY(EditAnywhere, Category = "Player Movement Settings")
-	bool bCanSprint = true;
-
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Player States")
 	EPlayerMovementState PlayerMovementState { EPlayerMovementState::Idle };
 	

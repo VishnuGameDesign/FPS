@@ -101,4 +101,5 @@ private:
 
 private:
 	bool bCrouchedPressed = false;
+	bool bCanCrouch = false;
 };

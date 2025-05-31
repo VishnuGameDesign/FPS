@@ -53,7 +53,7 @@ void AFPSPlayerController::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	UpdateMovementState();
-	UE_LOG(LogTemp, Warning, TEXT("%s"), *UEnum::GetValueAsString(FPSCharacter->PlayerMovementState));
+	// UE_LOG(LogTemp, Warning, TEXT("%s"), *UEnum::GetValueAsString(FPSCharacter->PlayerMovementState));
 }
 
 void AFPSPlayerController::OnPossess(APawn* InPawn)
@@ -140,15 +140,7 @@ void AFPSPlayerController::HandleCrouch()
 {
 	if (FPSCharacter)
 	{
-		bool bVelocityGained = FPSCharacter->GetCharacterMovement()->GetLastUpdateVelocity().SizeSquared() > FMath::Square(FPSCharacter->SlideTargetVelocity); 
-		if (bVelocityGained)
-		{
-			FPSCharacter->InitSliding();
-		}
-		else
-		{
-			FPSCharacter->StartCrouch();
-		}
+		FPSCharacter->StartCrouch();
 	}
 }
 
@@ -165,10 +157,7 @@ void AFPSPlayerController::HandleSprinting(const FInputActionValue& InputActionV
 {
 	if (FPSCharacter)
 	{
-		if (FPSCharacter->bCanSprint)
-		{
-			FPSCharacter->StartSprinting();
-		}
+		FPSCharacter->StartSprinting();
 	}
 }
 
@@ -221,13 +210,13 @@ void AFPSPlayerController::UpdateMovementState()
 	{
 		FPSCharacter->PlayerMovementState = EPlayerMovementState::Sliding;
 	}
-	else if (FPSCharacter->bIsSprinting)
-	{
-		FPSCharacter->PlayerMovementState = EPlayerMovementState::Sprinting;
-	}
 	else if (FPSCharacter->bIsCrouching)
 	{
 		FPSCharacter->PlayerMovementState = EPlayerMovementState::Crouching;
+	}
+	else if (FPSCharacter->bIsSprinting)
+	{
+		FPSCharacter->PlayerMovementState = EPlayerMovementState::Sprinting;
 	}
 	else if (FPSCharacter->GetVelocity().SizeSquared() > 0.f)
 	{

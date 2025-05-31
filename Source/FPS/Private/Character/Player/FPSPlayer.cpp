@@ -63,8 +63,6 @@ void AFPSPlayer::Tick(const float DeltaTime)
 		}
 	}
 
-	UE_LOG(LogTemp, Warning, TEXT("%f"), ElapsedTime);
-
 	if (bWantsToSlide)
 	{
 		GroundCheck();
@@ -190,8 +188,8 @@ void AFPSPlayer::StartSprinting()
 }
 
 void AFPSPlayer::StopSprinting()
-{
-	bIsSprinting = false;
+{			
+	bIsSprinting = false;	
 	GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
 }
 
@@ -199,7 +197,6 @@ void AFPSPlayer::StartCrouch()
 {
 	bIsCrouching = true; 
 	bInitSmoothCrouch = true;
-	bCanSprint = false;
 	GetCharacterMovement()->MaxWalkSpeed = GetCharacterMovement()->MaxWalkSpeedCrouched;
 }
 
@@ -207,7 +204,6 @@ void AFPSPlayer::StopCrouch()
 {
 	bIsCrouching = false;
 	bInitSmoothCrouch = false;
-	bCanSprint = true;
 	GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
 }
 
@@ -229,7 +225,6 @@ void AFPSPlayer::StopSliding()
 	bWantsToSlide = false;
 	bIsSliding = false;
 	bInitSmoothCrouch = false;
-	GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
 	GetCharacterMovement()->GroundFriction = OriginalGroundFriction;
 }
 
